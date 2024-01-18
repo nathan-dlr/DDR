@@ -1,5 +1,6 @@
 import pygame
 import os
+pygame.mixer.init()
 
 FPS = 60
 WIDTH, HEIGHT = 1400, 750
@@ -19,17 +20,18 @@ class Arrow:
 
     def move(self):     #move arrows up the screen 
         self.y_coord -= ARROW_VEL
-        if self.y_coord <= -1 * self.image.get_height():
+        if self.y_coord <= -1 * self.image.get_height():        #if arrow is completely off screen
             return True 
         else:
             return False
 
-    def draw(self):     #blit image screen
+    def draw(self):     #blit image on screen
         WINDOW.blit(self.image, (self.x_coord, self.y_coord))
             
 
+LEFT_ARROW = Arrow(pygame.image.load(os.path.join("Assets", "leftarrow.png")), 500) 
 
-LEFT_ARROW = Arrow(pygame.image.load(os.path.join("Assets", "leftarrow.png")), 500)
+
 
 def draw_window(active_arrows):
     WINDOW.fill(RED)  
@@ -44,20 +46,21 @@ def main():
     clock = pygame.time.Clock()
     run = True
     left = True
+    #pygame.mixer.music.load("life_burst.mp3")
+    #pygame.mixer.music.play()
     while run:
         clock.tick(FPS)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:       #close window if user quits
                 run = False
-        for arrow in active_arrows:
-            miss = arrow.move()    
+        for arrow in active_arrows:     #remove arrows that player misses
+            miss = arrow.move() 
             if  miss == True:
-                active_arrows.remove(arrow)
-                print("Removed arrow")
-        print(active_arrows)
+                active_arrows.remove(arrow)     
 
         draw_window(active_arrows)      #update window each time loop executes
     pygame.quit()
     
+
 
 main()
