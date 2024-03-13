@@ -1,5 +1,7 @@
 import pygame
 import os
+import time
+import threading
 pygame.mixer.init()
 
 
@@ -9,9 +11,8 @@ WINDOW = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Dance Dance Revolution")
 
 
-RED = (250, 0, 0)
 
-ARROW_VEL = 2
+ARROW_VEL = 14
 
 class Arrow:
     def __init__(self, image, x_coord, y_coord = HEIGHT):
@@ -23,7 +24,8 @@ class Arrow:
     def move(self):     #move arrows up the screen 
         self.y_coord -= ARROW_VEL
         self.target_zone()
-        if self.y_coord <= -1 * self.image.get_height():        #if arrow is completely off screen
+        #if self.y_coord <= -1 * self.image.get_height():        #if arrow is completely off screen
+        if self.y_coord <= 10:        #if arrow is completely off screen
             return True 
         else:
             return False
@@ -32,10 +34,10 @@ class Arrow:
         if 8 <= self.y_coord < 22:
             self.target = "PERFECT"
         
-        elif 22 <= self.y_coord < 40:
+        elif 25 <= self.y_coord < 45:
             self.target = "GREAT"
 
-        elif 40 <= self.y_coord < 65:
+        elif 45 <= self.y_coord < 65:
             self.target = "GOOD"
 
         elif self.y_coord >= 65:
@@ -44,7 +46,7 @@ class Arrow:
 
     def draw(self):     #blit image on screen
         WINDOW.blit(self.image, (self.x_coord, self.y_coord))
-            
+           
 RIGHT_ARROW = Arrow(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "uparrow.png")), -90), 883) 
 UP_ARROW = Arrow(pygame.image.load(os.path.join("Assets", "uparrow.png")), 700) #hits outline at y = 12
 DOWN_ARROW = Arrow(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "uparrow.png")), 180), 527) 
@@ -52,31 +54,39 @@ LEFT_ARROW = Arrow(pygame.transform.rotate(pygame.image.load(os.path.join("Asset
 
 BACKGROUND = SPACE = pygame.transform.scale(pygame.image.load(os.path.join("Assets", "background.jpg")), (WIDTH, HEIGHT))
 
+active_arrows = []
+
 def draw_window(active_arrows):
     WINDOW.blit(BACKGROUND, (0,0))  
     for arrow in active_arrows:
         arrow.draw()
-    UP_ARROW.y_coord = 40
-    DOWN_ARROW.y_coord = 65
-    UP_ARROW.draw()
-    DOWN_ARROW.draw()
     pygame.display.update()
 
+def arrow_mapping():
+    pygame.mixer.music.load("life_burst.mp3")
+    active_arrows.append(LEFT_ARROW)
+    time.sleep(0.5)
+    active_arrows.append(RIGHT_ARROW)
+    time.sleep(0.25)
+    pygame.mixer.music.play()
+    
+    
+  
 
 
 def main():
-    active_arrows = []
     clock = pygame.time.Clock()
     run = True
-    pygame.mixer.music.load("life_burst.mp3")
-    #pygame.mixer.music.play()
     while run:
         clock.tick(FPS)
         for event in pygame.event.get():
             if event.type == pygame.QUIT: #close window if user quits
                 run = False
-        for arrow in active_arrows: #remove arrows that player misses
-            arrow.move() 
+        for arrow in active_arrows: #moves arrows and removes arrows that player misses or go off screen
+            if arrow.move():
+                active_arrows.remove(arrow)
+            
+                
              
       
         draw_window(active_arrows)      #update window each time loop executes
@@ -84,4 +94,5 @@ def main():
     
 
 
+t1 = threading.Thread(target=arrow_mapping).start()
 main()
